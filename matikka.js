@@ -340,7 +340,7 @@ function progressTest() {
         test.state = "result";
         const endTime = Date.now();
         const time = endTime - test.startTime;
-        const pct = Math.round(test.right / test.count) * 100;
+        const pct = Math.round(test.right / test.count * 100);
         EL.question.innerHTML = `
         <div class="flex flex-col">
         <span class="right">Oikein: ${test.right} / ${test.count}</span>
