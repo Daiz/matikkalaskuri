@@ -1,0 +1,160 @@
+:root {
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-800: #1e293b;
+  --primary-50: #f0f9ff;
+  --primary-100: #e0f2fe;
+  --primary-400: #38bdf8;
+  --primary-500: #0ea5e9;
+  --primary-800: #075985;
+  --success-50: #f0fdf4;
+  --success-100: #dcfce7;
+  --success-400: #4ade80;
+  --success-500: #22c55e;
+  --success-800: #166534;
+  --failure-50: #fef2f2;
+  --failure-100: #fee2e2;
+  --failure-400: #f87171;
+  --failure-500: #ef4444;
+  --failure-800: #991b1b;
+  --transition: border-color 0.125s, background-color 0.125s, outline-color 0.125s, color 0.125s;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--gray-50);
+  font-family: system-ui, sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+}
+
+.screen {
+  position: absolute;
+  inset: 0px;
+}
+
+.flex {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
+
+.screen.hidden {
+  display: none;
+}
+
+button {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 1;
+  align-items: center;
+  padding: 0.5em 1.5em;
+  min-height: 48px;
+  font-size: 1rem;
+  border: 0.1rem solid var(--gray-400);
+  transition: var(--transition);
+  cursor: pointer;
+  border-radius: 0.5em;
+  background-color: var(--gray-100);
+  outline: 0.1rem solid rgb(0 0 0 / 0%);
+}
+
+button:hover, button:focus {
+  border-color: var(--primary-400);
+  background-color: var(--primary-50);
+}
+
+button:focus {
+  outline-color: var(--primary-400);
+}
+
+.question {
+  font-size: 1.75rem;
+  line-height: 1.75;
+  padding: 0 1rem;
+  text-align: center;
+  text-wrap: balance;
+}
+
+#answer {
+  font-weight: bold;
+}
+
+.right {
+  color: var(--success-500);
+}
+
+.wrong {
+  color: var(--failure-500);
+}
+
+input {
+  padding: 0.125em 0.25em;
+  min-height: 48px;
+  font-size: 1em;
+  border: 0.1rem solid var(--gray-400);
+  transition: var(--transition);
+  border-radius: 0.5rem;
+  width: 5em;
+  background-color: var(--gray-100);
+  outline: 1px solid rgb(0 0 0 / 0%);
+}
+
+input:focus {
+  border-color: var(--primary-400);
+  background-color: var(--primary-50);
+  outline-color: var(--primary-400);
+}
+
+input.wrong {
+  border-color: var(--failure-400);
+  background-color: var(--failure-50);
+}
+
+input.wrong:focus {
+  outline-color: var(--failure-400);
+}
+
+input.right {
+  border-color: var(--success-400);
+  background-color: var(--success-50);
+}
+
+input.right:focus {
+  outline-color: var(--success-400);
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.75rem;
+}

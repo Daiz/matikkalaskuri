@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matikkalaskuri</title>
+  <link rel="stylesheet" href="remedy.css">
+  <link rel="stylesheet" href="matikka.css">
+</head>
+
+<body>
+  <div id="app">
+    <div id="menu" class="screen flex flex-col">
+      <div class="flex">
+        <h1>Matikkalaskuri</h1>
+      </div>
+      <div id="tests" class="flex flex-col flex-grow" style="gap: 1rem;">
+        
+      </div>
+    </div>
+    <form id="test" class="screen hidden flex flex-col">
+      <div class="flex">
+        <h1 id="title"></h1>
+      </div>
+      <div class="flex flex-col flex-grow" style="gap: 1rem; font-size: 1rem;">
+        <div id="question"></div>
+        <div id="answer"></div>
+      </div>
+      <div class="flex justify-between self-stretch" style="flex-direction: row-reverse; padding: 1rem">
+        <button class="js-next" type="submit" style="width: 8rem">Tarkista</button>
+        <div style="white-space: nowrap;"><span id="current">1</span> / <span id="count">20</span></div>
+        <button class="js-quit">Lopeta</button>
+      </div>
+    </form>
+  </div>
+  <script src="levenshtein.js" type="text/javascript"></script>
+  <script src="matikka.js" type="text/javascript"></script>
+</body>
+
+</html>
