@@ -299,7 +299,7 @@ function progressTest() {
         task.A instanceof Array
           ? task.A.map(formatNumber)
           : [formatNumber(task.A)];
-      el.setAttribute("disabled", "");
+      // el.setAttribute("disabled", "");
       const idx = answers.indexOf(input);
       if (idx > -1) {
         EL.answer.classList.add("right");
@@ -321,7 +321,7 @@ function progressTest() {
         ++test.wrong;
       }
       EL.next.textContent = "Seuraava";
-      EL.next.focus();
+      // EL.next.focus();
       break;
     }
     case "review": {
