@@ -399,7 +399,6 @@ function focusTestButton(key) {
 }
 
 d.addEventListener("keydown", (e) => {
-  console.log(app.screen, e.key);
   switch (app.screen) {
     case "menu": {
       console.log(e.key);
