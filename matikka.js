@@ -167,6 +167,7 @@ const ABC = { a: 0, b: 0, c: 0 };
 const decks = {
   AddSub1: makeDeck(ABC, {
     title: "Yhteen- ja vähennyslaskut 1",
+    inputType: "tel",
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} + ${b} = ::`, A: c }),
@@ -177,6 +178,7 @@ const decks = {
   }),
   AddSub2: makeDeck(ABC, {
     title: "Yhteen- ja vähennyslaskut 2",
+    inputType: "tel",
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} + ${b} = ::`, A: c }),
@@ -187,6 +189,7 @@ const decks = {
   }),
   MulDiv1: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 1",
+    inputType: "tel",
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
@@ -197,6 +200,7 @@ const decks = {
   }),
   MulDiv2: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 2",
+    inputType: "tel",
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
@@ -251,6 +255,7 @@ function makeTest(key) {
   return {
     key,
     title: deck.title,
+    inputType: deck.inputType ?? "text",
     count: deck.count,
     tasks,
     startTime: Date.now(),
@@ -272,7 +277,11 @@ const INPUT = `<input type="text" name="answer" autocomplete="off" />`;
  * @returns {string}
  */
 function formatQuestion(str) {
-  return str.replace("::", INPUT);
+  str = str.replace("::", INPUT);
+  if (test.inputType !== "text") {
+    str = str.replace(`"text"`, `"${test.inputType}"`)
+  }
+  return str;
 }
 
 /**
