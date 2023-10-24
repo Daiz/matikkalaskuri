@@ -401,7 +401,6 @@ function focusTestButton(key) {
 d.addEventListener("keydown", (e) => {
   switch (app.screen) {
     case "menu": {
-      console.log(e.key);
       switch (e.key) {
         case "ArrowDown": {
           if (currentFocus.nextElementSibling) {
