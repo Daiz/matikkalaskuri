@@ -309,8 +309,15 @@ function progressTest() {
       } else {
         EL.answer.classList.add("wrong");
         el.classList.add("wrong");
-        // TBD: levenshtein distance to calculate closest answer
-        EL.answer.innerHTML = `Väärin! Vastaus: ${answers[0]}`;
+        const closest = { answer: answers[0], distance: Infinity };
+        if (answers.length > 1) answers.forEach(answer => {
+          const dist = distance(input, answer);
+          if (dist < closest.distance) {
+            closest.answer = answer;
+            closest.distance = dist;
+          }
+        });
+        EL.answer.innerHTML = `Väärin! Vastaus: ${closest.answer}`;
         ++test.wrong;
       }
       EL.next.textContent = "Seuraava";
