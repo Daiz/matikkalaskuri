@@ -15,6 +15,7 @@ export type Deck<T> = DeckBasic<T> & {
 export type TestState = "wait" | "review" | "result"
 
 export type Test = {
+  key: string;
   title: string;
   tasks: QA[];
   state: TestState;

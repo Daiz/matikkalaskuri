@@ -144,18 +144,19 @@ const app = {
   screen: "test",
   /**
    * Change the current screen.
-   * @param {string} key 
+   * @param {string} key
    */
   changeScreen(key) {
-    EL.app.querySelectorAll(".screen").forEach(el => {
+    app.screen = key;
+    EL.app.querySelectorAll(".screen").forEach((el) => {
       if (el.id === key) {
         el.classList.remove("hidden");
       } else {
         el.classList.add("hidden");
       }
-    })
-  }
-}
+    });
+  },
+};
 
 const vals = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -208,7 +209,6 @@ const decks = {
 
 // create test buttons
 
-
 // create notes
 for (let i = 0; i < 10; ++i) {
   const a = vals[i];
@@ -232,7 +232,7 @@ for (let i = 0; i < 20; ++i) {
 
 /**
  * Make a test.
- * @param {keyof typeof decks} key 
+ * @param {keyof typeof decks} key
  * @returns {import("./types").Test}
  */
 function makeTest(key) {
@@ -243,10 +243,13 @@ function makeTest(key) {
     cards = cards.concat(deck.cards);
   }
   cards = shuffle(cards).slice(0, deck.count);
-  const tasks = shuffle(deck.notes).slice(0, deck.count).map((note, i) => {
-    return cards[i](note);
-  });
+  const tasks = shuffle(deck.notes)
+    .slice(0, deck.count)
+    .map((note, i) => {
+      return cards[i](note);
+    });
   return {
+    key,
     title: deck.title,
     count: deck.count,
     tasks,
@@ -255,17 +258,17 @@ function makeTest(key) {
     index: -1,
     right: 0,
     wrong: 0,
-  }
+  };
 }
 
 /** @type {import("./types").Test} */
 let test;
 
-const INPUT = `<input type="text" name="answer" autocomplete="off" />`
+const INPUT = `<input type="text" name="answer" autocomplete="off" />`;
 
 /**
  * Format question as a HTML string.
- * @param {string} str 
+ * @param {string} str
  * @returns {string}
  */
 function formatQuestion(str) {
@@ -274,12 +277,13 @@ function formatQuestion(str) {
 
 /**
  * Start a test.
- * @param {keyof typeof decks} key 
+ * @param {keyof typeof decks} key
  */
 function startTest(key) {
   app.changeScreen("test");
   test = makeTest(key);
   EL.title.textContent = test.title;
+  EL.next.removeAttribute("disabled");
   EL.count.textContent = String(test.count);
   progressTest();
 }
@@ -291,20 +295,25 @@ function progressTest() {
     case "wait": {
       test.state = "review";
       const el = $("input", EL.question);
-      const answers = task.A instanceof Array ? task.A.map(formatNumber) : [formatNumber(task.A)];
+      const answers =
+        task.A instanceof Array
+          ? task.A.map(formatNumber)
+          : [formatNumber(task.A)];
       el.setAttribute("disabled", "");
       const idx = answers.indexOf(input);
       if (idx > -1) {
         EL.answer.classList.add("right");
         el.classList.add("right");
-        EL.answer.innerHTML = "Oikein!"
+        EL.answer.innerHTML = "Oikein!";
+        ++test.right;
       } else {
         EL.answer.classList.add("wrong");
         el.classList.add("wrong");
         // TBD: levenshtein distance to calculate closest answer
         EL.answer.innerHTML = `Väärin! Vastaus: ${answers[0]}`;
+        ++test.wrong;
       }
-      EL.next.textContent = "Seuraava"
+      EL.next.textContent = "Seuraava";
       EL.next.focus();
       break;
     }
@@ -324,7 +333,18 @@ function progressTest() {
         test.state = "result";
         const endTime = Date.now();
         const time = endTime - test.startTime;
-
+        const pct = Math.round(test.right / test.count) * 100;
+        EL.question.innerHTML = `
+        <div class="flex flex-col">
+        <span class="right">Oikein: ${test.right} / ${test.count}</span>
+        <span class="wrong">Väärin: ${test.wrong} / ${test.count}</span>
+        <span>Sait ${pct}% oikein!</span>
+        <span>Suoritusaika: ${formatTime(time)}</span>
+        </div>
+        `;
+        EL.answer.innerHTML = ``;
+        EL.next.setAttribute("disabled", "");
+        EL.quit.focus();
         // TBD
       }
     }
@@ -338,12 +358,14 @@ EL.test.addEventListener("submit", (e) => {
 
 EL.quit.addEventListener("click", (e) => {
   app.changeScreen("menu");
-})
+  currentFocus = $(`.start-test[data-test='${test.key}'`);
+  currentFocus.focus();
+});
 
 function printTest() {
   let str = test.title + "\n\n";
   for (let i = 0; i < test.tasks.length; ++i) {
-    str += `${i+1}. ${test.tasks[i].Q.replace("::", "?")}\n`
+    str += `${i + 1}. ${test.tasks[i].Q.replace("::", "?")}\n`;
   }
   console.log(str);
 }
@@ -351,8 +373,50 @@ function printTest() {
 // create test start buttons
 let html = ``;
 for (let key in decks) {
-  html += `<button onclick="startTest('${key}')" class="self-stretch">${decks[key].title}</button>`
+  html += `<button onclick="startTest('${key}')" class="start-test self-stretch" data-test="${key}">${decks[key].title}</button>`;
 }
 EL.tests.innerHTML = html;
 
 app.changeScreen("menu");
+var currentFocus = $(".start-test");
+currentFocus.focus();
+
+function focusTestButton(key) {
+  EL.tests.querySelectorAll(".start-test").forEach((button) => {
+    const btn = /** @type {HTMLElement} */ (button);
+    if (btn.getAttribute("data-test") === key) {
+      btn.focus();
+      currentFocus = btn;
+    }
+  });
+}
+
+d.addEventListener("keydown", (e) => {
+  console.log(app.screen, e.key);
+  switch (app.screen) {
+    case "menu": {
+      console.log(e.key);
+      switch (e.key) {
+        case "ArrowDown": {
+          if (currentFocus.nextElementSibling) {
+            currentFocus = /** @type {HTMLElement} */ (
+              currentFocus.nextElementSibling
+            );
+            currentFocus.focus();
+            break;
+          }
+        }
+        case "ArrowUp": {
+          if (currentFocus.previousElementSibling) {
+            currentFocus = /** @type {HTMLElement} */ (
+              currentFocus.previousElementSibling
+            );
+            currentFocus.focus();
+            break;
+          }
+        }
+      }
+      break;
+    }
+  }
+});
