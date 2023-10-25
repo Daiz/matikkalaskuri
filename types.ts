@@ -7,6 +7,7 @@ type InputType = "text" | "tel";
 export type DeckBasic<T> = {
   title: string;
   inputType?: InputType;
+  baseTime: number;
   count: number;
   cards: Card<T>[];
 }
@@ -19,13 +20,13 @@ export type TestState = "wait" | "review" | "result"
 
 export type Test = {
   key: string;
-  title: string;
-  inputType: InputType;
+  deck: Deck<any>;
   tasks: QA[];
   state: TestState;
+  grade: number;
   startTime: number;
+  endTime: number | null;
   index: number;
-  count: number;
   right: number;
   wrong: number;
 }

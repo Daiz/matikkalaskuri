@@ -1,10 +1,16 @@
 //@ts-check
 const d = document;
 
+/** @typedef {import("./types").Test} Test */
+
 /* scale to window */
 const BASE_WIDTH = 320;
 const BASE_FONT_SIZE = 16;
 const SCALE_MAX = 2;
+const STAR = "★";
+const STORE = "matikkalaskuri-pisteet";
+/** @type {{ [key: string]: number }} */
+const grades = JSON.parse(localStorage.getItem(STORE) ?? "{}");
 
 function resize() {
   const iw = window.innerWidth;
@@ -29,12 +35,6 @@ const $ = (selector, root = d) => {
       `Could not find an element with selector "${selector}" from ${root}`
     );
   return /** @type {HTMLElement} */ (res);
-};
-$.on = function (el, evt, cb) {
-  el.addEventListener(evt, cb);
-};
-$.off = function (el, evt, cb) {
-  el.removeEventListener(evt, cb);
 };
 
 /**
@@ -168,6 +168,7 @@ const decks = {
   AddSub1: makeDeck(ABC, {
     title: "Yhteen- ja vähennyslaskut 1",
     inputType: "tel",
+    baseTime: 60,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} + ${b} = ::`, A: c }),
@@ -179,6 +180,7 @@ const decks = {
   AddSub2: makeDeck(ABC, {
     title: "Yhteen- ja vähennyslaskut 2",
     inputType: "tel",
+    baseTime: 60,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} + ${b} = ::`, A: c }),
@@ -190,6 +192,7 @@ const decks = {
   MulDiv1: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 1",
     inputType: "tel",
+    baseTime: 75,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
@@ -201,6 +204,7 @@ const decks = {
   MulDiv2: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 2",
     inputType: "tel",
+    baseTime: 90,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
@@ -214,7 +218,7 @@ const decks = {
 // create test buttons
 
 // create notes
-for (let i = 0; i < 10; ++i) {
+for (let i = 1; i < 10; ++i) {
   const a = vals[i];
   for (let ii = i; ii < 10; ++ii) {
     const b = vals[ii];
@@ -226,9 +230,9 @@ for (let i = 0; i < 10; ++i) {
     decks.MulDiv2.notes.push({ a, b, c: a * b });
   }
 }
-for (let i = 0; i < 20; ++i) {
+for (let i = 1; i < 20; ++i) {
   const a = vals[i];
-  for (let ii = i; ii < 20; ++ii) {
+  for (let ii = 10; ii < 19; ++ii) {
     const b = vals[ii];
     decks.AddSub2.notes.push({ a, b, c: a + b });
   }
@@ -252,13 +256,14 @@ function makeTest(key) {
     .map((note, i) => {
       return cards[i](note);
     });
+  const grade = grades[key] ?? 0;
   return {
     key,
-    title: deck.title,
-    inputType: deck.inputType ?? "text",
-    count: deck.count,
+    deck,
     tasks,
+    grade,
     startTime: Date.now(),
+    endTime: null,
     state: "review",
     index: -1,
     right: 0,
@@ -266,7 +271,42 @@ function makeTest(key) {
   };
 }
 
-/** @type {import("./types").Test} */
+/**
+ *
+ * @param {number} stars
+ */
+function formatGrade(stars) {
+  if (stars > 5) throw new Error("Exceeded maximum rating.");
+  let html = "";
+  for (let i = 0; i < 5; ++i) {
+    const full = stars === 5 ? "var(--star-perfect)" : "var(--star-full)";
+    const empty = "var(--star-empty)";
+    html += `<span style="color: ${i < stars ? full : empty}">${STAR}</span>`;
+  }
+  return html;
+}
+
+/**
+ *
+ * @param {Test} test
+ */
+function gradeTest(test) {
+  if (!test.endTime) {
+    throw new Error("Only finished tests can be graded.");
+  }
+  const time = Math.floor((test.endTime - test.startTime) / 1000);
+  const stars = Math.max(
+    1,
+    5 - Math.floor(time / test.deck.baseTime) - test.wrong
+  );
+
+  return {
+    stars,
+    html: formatGrade(stars),
+  };
+}
+
+/** @type {Test} */
 let test;
 
 const INPUT = `<input type="text" name="answer" autocomplete="off" />`;
@@ -278,8 +318,8 @@ const INPUT = `<input type="text" name="answer" autocomplete="off" />`;
  */
 function formatQuestion(str) {
   str = str.replace("::", INPUT);
-  if (test.inputType !== "text") {
-    str = str.replace(`"text"`, `"${test.inputType}"`)
+  if (test.deck.inputType !== "text") {
+    str = str.replace(`"text"`, `"${test.deck.inputType}"`);
   }
   return str;
 }
@@ -291,10 +331,24 @@ function formatQuestion(str) {
 function startTest(key) {
   app.changeScreen("test");
   test = makeTest(key);
-  EL.title.textContent = test.title;
+  EL.title.innerHTML = test.deck.title;
   EL.next.removeAttribute("disabled");
-  EL.count.textContent = String(test.count);
+  EL.count.textContent = String(test.deck.count);
   progressTest();
+}
+
+function quitTest() {
+  app.changeScreen("menu");
+  const btn = $(`.start-test[data-test='${test.key}'`);
+  const grade = $(".grade", btn);
+  // upgrade star rating if a new record was reached
+  if (
+    grades[test.key] > parseInt(grade.getAttribute("data-grade") ?? "0", 10)
+  ) {
+    $(".grade", btn).innerHTML = formatGrade(grades[test.key]);
+  }
+  currentFocus = $(`.start-test[data-test='${test.key}'`);
+  currentFocus.focus();
 }
 
 function progressTest() {
@@ -319,13 +373,14 @@ function progressTest() {
         EL.answer.classList.add("wrong");
         el.classList.add("wrong");
         const closest = { answer: answers[0], distance: Infinity };
-        if (answers.length > 1) answers.forEach(answer => {
-          const dist = distance(input, answer);
-          if (dist < closest.distance) {
-            closest.answer = answer;
-            closest.distance = dist;
-          }
-        });
+        if (answers.length > 1)
+          answers.forEach((answer) => {
+            const dist = distance(input, answer);
+            if (dist < closest.distance) {
+              closest.answer = answer;
+              closest.distance = dist;
+            }
+          });
         EL.answer.innerHTML = `Väärin! Vastaus: ${closest.answer}`;
         ++test.wrong;
       }
@@ -333,9 +388,24 @@ function progressTest() {
       // EL.next.focus();
       break;
     }
+    case "result": {
+      // quit with perfect score
+      if (test.grade === 5) {
+        return quitTest();
+      }
+      // else restart the test
+      test.state = "review";
+      test.index = -1;
+      test.startTime = Date.now();
+      test.endTime = null;
+      test.grade = grades[test.key];
+      test.right = 0;
+      test.wrong = 0;
+      // no break so we go to the next step for rest of restart
+    }
     case "review": {
       test.index += 1;
-      if (test.index < test.count) {
+      if (test.index < test.deck.count) {
         test.state = "wait";
         const task = test.tasks[test.index];
         EL.current.textContent = String(test.index + 1);
@@ -347,22 +417,32 @@ function progressTest() {
         $("input", EL.question).focus();
       } else {
         test.state = "result";
-        const endTime = Date.now();
-        const time = endTime - test.startTime;
-        const pct = Math.round(test.right / test.count * 100);
+        test.endTime = Date.now();
+        const grade = gradeTest(test);
+        // store improved grades in localStorage
+        if (grade.stars > (grades[test.key] ?? 0)) {
+          grades[test.key] = grade.stars;
+          localStorage.setItem(STORE, JSON.stringify(grades));
+        }
+        test.grade = grade.stars;
+        const time = test.endTime - test.startTime;
+        const pct = Math.round((test.right / test.deck.count) * 100);
+        EL.next.textContent = "Uudestaan";
         EL.question.innerHTML = `
         <div class="flex flex-col">
-        <span class="right">Oikein: ${test.right} / ${test.count}</span>
-        <span class="wrong">Väärin: ${test.wrong} / ${test.count}</span>
+        <span class="right">Oikein: ${test.right} / ${test.deck.count}</span>
+        <span class="wrong">Väärin: ${test.wrong} / ${test.deck.count}</span>
         <span>Sait ${pct}% oikein!</span>
         <span>Suoritusaika: ${formatTime(time)}</span>
+        <div class="flex" style="gap: 0.125rem; font-size: 1.75em;">
+          ${grade.html}
+        </div>
         </div>
         `;
-        EL.answer.innerHTML = ``;
-        EL.next.setAttribute("disabled", "");
-        EL.quit.focus();
-        // TBD
+        EL.answer.innerHTML = `<input type="text" name="answer" style="opacity: 0;" />`;
+        $("input", EL.answer).focus();
       }
+      break;
     }
   }
 }
@@ -372,14 +452,10 @@ EL.test.addEventListener("submit", (e) => {
   progressTest();
 });
 
-EL.quit.addEventListener("click", (e) => {
-  app.changeScreen("menu");
-  currentFocus = $(`.start-test[data-test='${test.key}'`);
-  currentFocus.focus();
-});
+EL.quit.addEventListener("click", quitTest);
 
 function printTest() {
-  let str = test.title + "\n\n";
+  let str = test.deck.title + "\n\n";
   for (let i = 0; i < test.tasks.length; ++i) {
     str += `${i + 1}. ${test.tasks[i].Q.replace("::", "?")}\n`;
   }
@@ -389,7 +465,12 @@ function printTest() {
 // create test start buttons
 let html = ``;
 for (let key in decks) {
-  html += `<button onclick="startTest('${key}')" class="start-test self-stretch" data-test="${key}">${decks[key].title}</button>`;
+  html += `<button onclick="startTest('${key}')" class="start-test self-stretch" data-test="${key}">
+    <span>${decks[key].title.replace(/\s(\d+)$/, (m) => `&nbsp;${m[1]}`)}</span>
+    <div class="grade" data-grade="${grades[key] ?? 0}">${formatGrade(
+    grades[key] ?? 0
+  )}</div>  
+  </button>`;
 }
 EL.tests.innerHTML = html;
 
