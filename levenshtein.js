@@ -25,6 +25,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * Levenshtein distance helper function.
+ * @private
+ * @param {number} d0 
+ * @param {number} d1 
+ * @param {number} d2 
+ * @param {number} bx 
+ * @param {number} ay 
+ * @returns 
+ */
 function _min(d0, d1, d2, bx, ay) {
   return d0 < d1 || d2 < d1
     ? d0 > d2
@@ -48,20 +58,20 @@ function distance(a, b)
     }
 
     if (a.length > b.length) {
-      var tmp = a;
+      let tmp = a;
       a = b;
       b = tmp;
     }
 
-    var la = a.length;
-    var lb = b.length;
+    let la = a.length;
+    let lb = b.length;
 
     while (la > 0 && (a.charCodeAt(la - 1) === b.charCodeAt(lb - 1))) {
       la--;
       lb--;
     }
 
-    var offset = 0;
+    let offset = 0;
 
     while (offset < la && (a.charCodeAt(offset) === b.charCodeAt(offset))) {
       offset++;
@@ -74,21 +84,21 @@ function distance(a, b)
       return lb;
     }
 
-    var x = 0;
-    var y;
-    var d0;
-    var d1;
-    var d2;
-    var d3;
-    var dd;
-    var dy;
-    var ay;
-    var bx0;
-    var bx1;
-    var bx2;
-    var bx3;
+    let x = 0;
+    let y = 0;
+    let d0 = 0;
+    let d1 = 0;
+    let d2 = 0;
+    let d3 = 0;
+    let dd = 0;
+    let dy = 0;
+    let ay = 0;
+    let bx0 = 0;
+    let bx1 = 0;
+    let bx2 = 0;
+    let bx3 = 0;
 
-    var vector = [];
+    const vector = [];
 
     for (y = 0; y < la; y++) {
       vector.push(y + 1);
