@@ -394,13 +394,7 @@ function progressTest() {
         return quitTest();
       }
       // else restart the test
-      test.state = "review";
-      test.index = -1;
-      test.startTime = Date.now();
-      test.endTime = null;
-      test.grade = grades[test.key];
-      test.right = 0;
-      test.wrong = 0;
+      test = makeTest(/** @type {keyof typeof decks} */ (test.key))
       // no break so we go to the next step for rest of restart
     }
     case "review": {
