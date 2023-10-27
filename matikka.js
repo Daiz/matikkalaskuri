@@ -180,7 +180,7 @@ const decks = {
   AddSub2: makeDeck(ABC, {
     title: "Yhteen- ja vähennyslaskut 2",
     inputType: "tel",
-    baseTime: 60,
+    baseTime: 75,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} + ${b} = ::`, A: c }),
@@ -192,7 +192,7 @@ const decks = {
   MulDiv1: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 1",
     inputType: "tel",
-    baseTime: 75,
+    baseTime: 90,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
@@ -204,7 +204,7 @@ const decks = {
   MulDiv2: makeDeck(ABC, {
     title: "Kerto- ja jakolaskut 2",
     inputType: "tel",
-    baseTime: 90,
+    baseTime: 120,
     count: 20,
     cards: [
       ({ a, b, c }) => ({ Q: `${a} × ${b} = ::`, A: c }),
