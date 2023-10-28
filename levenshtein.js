@@ -105,7 +105,7 @@ function distance(a, b)
       vector.push(a.charCodeAt(offset + y));
     }
 
-    var len = vector.length - 1;
+    const len = vector.length - 1;
 
     for (; x < lb - 3;) {
       bx0 = b.charCodeAt(offset + (d0 = x));
