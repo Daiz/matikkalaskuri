@@ -265,7 +265,7 @@ const decks = {
   Units1: makeDeck(UC, {
     title: "Yksikkömuunnokset 1",
     inputType: "tel",
-    baseTime: 60,
+    baseTime: 120,
     count: 20,
     cut: false,
     cards: [
