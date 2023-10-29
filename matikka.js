@@ -53,6 +53,17 @@ function pad(i, n = 2, c = "0") {
 }
 
 /**
+ * Clamp a value.
+ * @param {number} val 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns 
+ */
+function clamp(val, min, max) {
+  return val < min ? min : val > max ? max : val;
+}
+
+/**
  * Format a timestamp to a MM:SS string.
  * @param {number} time - time in milliseconds
  */
@@ -72,6 +83,18 @@ function formatNumber(num) {
 }
 
 /**
+ * Format the user answer for comparison purposes.
+ * @param {string | number} input 
+ * @returns 
+ */
+function formatAnswer(input) {
+  return input
+    .toString()
+    .replace(/(\d+)\.(\d+)/g, (m) => `${m[1]},${m[2]}`)
+    .replace(/^(\d+,\d*?)0+$/, (_, v) => v);
+}
+
+/**
  * Parse a number from a string. Supports comma as decimal separator.
  * @param {string} str
  * @returns {number}
@@ -82,14 +105,14 @@ function parseNumber(str) {
 }
 
 /**
- * Get a random integer. From 0 to a, or from a to b.
+ * Get a random integer. From 0 to a - 1, or from a to b.
  * @param {number} a
  * @param {number=} b
  * @returns {number}
  */
 function randInt(a, b) {
   if (a == null) throw new Error("At least one argument must be supplied.");
-  if (b == null) return Math.floor(Math.random() * (a + 1));
+  if (b == null) return Math.floor(Math.random() * (a));
   return a + Math.floor(Math.random() * (b - a + 1));
 }
 
@@ -163,6 +186,32 @@ const vals = [
 ];
 
 const ABC = { a: 0, b: 0, c: 0 };
+// unit conversion
+// u = unit, p = prefix
+const UC = { u: "", a: 0, ap: "", b: 0, bp: ""}
+
+const UNITS = ["g", "L", "m"];
+
+const PREFIX = {
+  "k": Math.pow(10, 3),
+  "": 1,
+  // "d": Math.pow(10, -1),
+  "c": Math.pow(10, -2),
+  // "%": Math.pow(10, -2),
+  "m": Math.pow(10, -3),
+  "µ": Math.pow(10, -6),
+}
+
+const PREFIXES = Object.keys(PREFIX);
+
+/**
+ * Format a decimal number.
+ * @param {number} num 
+ * @returns 
+ */
+function formatDecimal(num) {
+  return num.toFixed(9).replace(/^(\d+\.\d*?)0+$/, (_, v) => v).replace(".", ",").replace(/,$/, "");
+}
 
 const decks = {
   AddSub1: makeDeck(ABC, {
@@ -213,6 +262,39 @@ const decks = {
       ({ a, b, c }) => ({ Q: `${c} ÷ ${a} = ::`, A: b }),
     ],
   }),
+  Units1: makeDeck(UC, {
+    title: "Yksikkömuunnokset 1",
+    inputType: "tel",
+    baseTime: 60,
+    count: 20,
+    cut: false,
+    cards: [
+      ({ u, a, b, ap, bp }) => ({ Q: `${formatDecimal(a)}${ap}${u} = :: ${bp}${u}?`, A: formatDecimal(b) }),
+      ({ u, a, b, ap, bp }) => ({ Q: `${formatDecimal(b)}${bp}${u} = :: ${ap}${u}?`, A: formatDecimal(a) }),
+    ],
+    noteGen: () => {
+      const plen = PREFIXES.length;
+      // const pcti = PREFIXES.indexOf("%");
+      let u = UNITS[randInt(UNITS.length)];
+      let api = randInt(plen);
+      let bpi = api;
+      
+      while (api === bpi) {
+        bpi = clamp(api + randInt(-2, 2), 0, plen - 1)
+      }
+
+      let ap = PREFIXES[api];
+      let bp = PREFIXES[bpi];
+
+      if (Math.random() > 0.5) {
+        [ap, bp] = [bp, ap];
+      }
+
+      const a = parseFloat((randInt(1, 1000) / ((10 * randInt(0, 3)) || 1)).toFixed(3));
+      const b = (a * PREFIX[ap]) / PREFIX[bp];
+      return { u, a, b, ap, bp };
+    },
+  }),
 };
 
 // create test buttons
@@ -244,14 +326,30 @@ for (let i = 1; i < 20; ++i) {
  * @returns {import("./types").Test}
  */
 function makeTest(key) {
+  /** @type {import("./types").Deck<any>} */
   const deck = decks[key];
   let cards = deck.cards.slice();
-  const cardCount = deck.count * 2;
+  const cut = +(deck.cut ?? true) + 1;
+  const cardCount = deck.count * cut;
   while (cards.length < cardCount) {
     cards = cards.concat(deck.cards);
   }
-  cards = shuffle(cards).slice(0, deck.count);
-  const tasks = shuffle(deck.notes)
+  const shuffler = deck.shuffle ?? shuffle;
+  cards = shuffler(cards).slice(0, deck.count);
+  console.log(cards);
+  const notes = deck.notes.slice();
+  if (!notes.length && deck.noteGen) {
+    const set = new Set();
+    while (set.size < cardCount) {
+      const note = deck.noteGen();
+      const key = JSON.stringify(note);
+      set.add(key);
+    };
+    set.forEach(n => {
+      notes.push(JSON.parse(n));
+    });
+  }
+  const tasks = shuffle(notes)
     .slice(0, deck.count)
     .map((note, i) => {
       return cards[i](note);
@@ -353,7 +451,7 @@ function quitTest() {
 
 function progressTest() {
   const task = test.tasks[test.index];
-  const input = /** @type {any} */ (EL.test).answer?.value;
+  const input = formatAnswer(/** @type {any} */ (EL.test).answer?.value ?? "");
   switch (test.state) {
     case "wait": {
       test.state = "review";
@@ -361,7 +459,7 @@ function progressTest() {
       const answers =
         task.A instanceof Array
           ? task.A.map(formatNumber)
-          : [formatNumber(task.A)];
+          : [formatAnswer(task.A)];
       // el.setAttribute("disabled", "");
       const idx = answers.indexOf(input);
       if (idx > -1) {

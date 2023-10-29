@@ -10,6 +10,9 @@ export type DeckBasic<T> = {
   baseTime: number;
   count: number;
   cards: Card<T>[];
+  shuffle?: (input: Card<T>[]) => Card<T>[];
+  cut?: boolean | number;
+  noteGen?: () => T;
 }
 
 export type Deck<T> = DeckBasic<T> & {
