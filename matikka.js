@@ -90,8 +90,8 @@ function formatNumber(num) {
 function formatAnswer(input) {
   return input
     .toString()
-    .replace(/(\d+)\.(\d+)/g, (m) => `${m[1]},${m[2]}`)
-    .replace(/^(\d+,\d*?)0+$/, (_, v) => v);
+    .replace(/(\d+)\.(\d+)/g, (_, v1, v2) => `${v1},${v2}`)
+    .replace(/^(\d+,\d*?)0+$/g, (_, v) => v);
 }
 
 /**
