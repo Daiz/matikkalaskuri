@@ -336,7 +336,6 @@ function makeTest(key) {
   }
   const shuffler = deck.shuffle ?? shuffle;
   cards = shuffler(cards).slice(0, deck.count);
-  console.log(cards);
   const notes = deck.notes.slice();
   if (!notes.length && deck.noteGen) {
     const set = new Set();
