@@ -193,10 +193,10 @@ const UC = { u: "", a: 0, ap: "", b: 0, bp: ""}
 const UNITS = ["g", "L", "m"];
 
 const PREFIX = {
-  "k": Math.pow(10, 3),
+  // "k": Math.pow(10, 3),
   "": 1,
   // "d": Math.pow(10, -1),
-  "c": Math.pow(10, -2),
+  // "c": Math.pow(10, -2),
   // "%": Math.pow(10, -2),
   "m": Math.pow(10, -3),
   "µ": Math.pow(10, -6),
@@ -280,7 +280,7 @@ const decks = {
       let bpi = api;
       
       while (api === bpi) {
-        bpi = clamp(api + randInt(-2, 2), 0, plen - 1)
+        bpi = clamp(api + randInt(-1, 1), 0, plen - 1)
       }
 
       let ap = PREFIXES[api];
